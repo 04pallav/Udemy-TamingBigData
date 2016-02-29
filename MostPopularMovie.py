@@ -4,11 +4,11 @@ from mrjob.step import MRStep
 import mrjob.protocol
 
 
-class MRMostRatedMovie(MRJob):
+class MRMostPopularMovie(MRJob):
 	INTERNAL_PROTOCOL = mrjob.protocol.PickleProtocol
 
 	def __init__(self, *args, **kwargs):
-		super(MRMostRatedMovie, self).__init__(*args, **kwargs)
+		super(MRMostPopularMovie, self).__init__(*args, **kwargs)
 		self.last=(0,[])
 
 	def steps(self):
@@ -37,4 +37,4 @@ class MRMostRatedMovie(MRJob):
 
 
 if __name__ == "__main__":
-	MRMostRatedMovie.run()
+	MRMostPopularMovie.run()
