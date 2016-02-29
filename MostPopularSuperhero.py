@@ -16,11 +16,27 @@ class MRMostPopularSuperhero(MRJob):
 					   reducer=self.reducer_get_last, reducer_final=self.reducer_final)
 			]
 	def mapper(self, key, line):
-		heros = line.split()
-		yield heros[0], len(heros)-1
+		try:
+			heroID, tail = line.split(None, 1)
+		except ValueError:
+			heroID = line
+			tail = ""
 
-	def reducer(self, heroID, value):
-		yield "{:6d}".format(sum(value)), heroID
+		if tail and tail[0] == '"':
+			# assume this is an heroID, heroName mapping
+			yield heroID, { 'name' : unicode(tail[1:-1],'latin1') }
+		else:
+			# assume this is a graph connection
+			yield heroID, { 'count' : len(tail.split()) }
+
+	def reducer(self, heroID, cols):
+		record = { 'heroID' : heroID, 'count' : 0 }
+		for col in cols: # merge records
+			count = record['count'] + col.get('count', 0)
+			record.update(col)
+			record['count'] = count
+
+		yield "{:6d}".format(record['count']), record
 
 	def reducer_get_last(self, *args):
 		self.last = args
@@ -29,9 +45,9 @@ class MRMostPopularSuperhero(MRJob):
 		yield args
 
 	def reducer_final(self):
-		count, heroIDs = self.last
-		for heroID in heroIDs:
-			yield count, heroID
+		count, records = self.last
+		for record in records:
+			yield count, record
 
 
 if __name__ == "__main__":
